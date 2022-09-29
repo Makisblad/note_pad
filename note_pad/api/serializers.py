@@ -15,7 +15,15 @@ from notes.models import *
 #         instance.save()
 #         return instance
 
-class NoteSerializer(serializers.ModelSerializer:
+class NoteSerializer(serializers.ModelSerializer):
+
+
     class Meta:
         model = Note
         fields = '__all__'
+class ThinNoteSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='notes-detail')
+
+    class Meta:
+        model = Note
+        fields = ('id', 'title', 'url')
