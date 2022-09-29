@@ -1,11 +1,12 @@
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.hashers import make_password
 from django.db.models import EmailField, CharField, BooleanField, DateTimeField #для оптимизации приложения импортируем только те модули, которые применяем
 
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
-    def create_user(self,  email, password=None, name=None, full_name=None, is_active=None, is_staff=None, is_admin=None):
+    def create_user(self,  email, password=None, name=None, full_name=None, is_active=True, is_staff=None, is_admin=None):
         """
         Create and save a user with the given username, email, and password.
         """
@@ -16,8 +17,8 @@ class UserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, name=name)
         user.set_password(password)
-        user.is_staff = is_staff
-        user.is_admin = is_admin
+        user.staff = is_staff
+        user.admin = is_admin
         user.is_active = is_active
         user.save(using=self._db)
         return user
@@ -37,8 +38,8 @@ class User(AbstractBaseUser):
     name = CharField(blank=True, max_length=255, null=True)
     full_name = CharField(blank=True, max_length=255, null=True)
     is_active = BooleanField(default=True)
-    is_staff = BooleanField(default=False)
-    is_admin = BooleanField(default=False)
+    staff = BooleanField(default=False)
+    admin = BooleanField(default=False)
     created_at = DateTimeField(auto_now_add=True)
 
     USERNAME_FIELD = 'email'# определяем поле, по которому будет проводиться верификация
@@ -69,15 +70,16 @@ class User(AbstractBaseUser):
 
     @property
     def is_staff(self):
-        if self.is_admin:
+        if self.admin:
             return True
         else:
-            return self.is_staff
+            return self.staff
 
     @property
     def is_admin(self):
-        return self.is_admin
+        return self.admin
 
     def save(self, *args, **kwargs):
-        print(self.password)
-        super().save(*args,**kwargs)
+        if not self.id and not self.staff and not self.admin:
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
