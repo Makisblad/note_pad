@@ -16,7 +16,9 @@ from notes.models import *
 #         return instance
 
 class NoteSerializer(serializers.ModelSerializer):
-
+    author = serializers.SerializerMethodField(read_only=True) #для закрытия редактирования автора заметки
+    def get_author(self, obj): #для определения выводимого атрибута связанного поля (по умолчанию - id)
+        return str(obj.author.email)
 
     class Meta:
         model = Note

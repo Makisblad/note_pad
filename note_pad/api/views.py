@@ -14,13 +14,17 @@ from rest_framework.viewsets import ModelViewSet
 class NotesView(ModelViewSet):
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
+    #http_method_names = ['get'] # ограничение доступных методов
 
     #для переопределения сериалайзера для усечения отображения полей. Если не нужно переопредделять, то эта функция не нужна
     def list(self, request, *args, **kwargs):
-        notes = Note.objects.all()
+        notes = Note.objects.filter(author=request.user.id)# отображение для пользователя только его записей
         context = {'request': request}
         serializer = ThinNoteSerializer(notes, many=True, context=context)
         return Response(serializer.data)
+
+    def perform_create(self, serializer):# для автоматического определения автора заметки при ее создании
+        serializer.save(author = self.request.user)
 
 
 #через дженерики
