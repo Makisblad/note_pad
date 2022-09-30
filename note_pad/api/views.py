@@ -8,17 +8,21 @@ from rest_framework.generics import GenericAPIView, ListCreateAPIView, RetrieveU
 from .serializers import *
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+#from rest_framework.permissions import IsAuthenticated
+from .permisions import IsAuthorOrReadonly #импортируем кастомные права
 
 
 #через вьюсеты
 class NotesView(ModelViewSet):
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
+    permission_classes = (IsAuthorOrReadonly,) #настройка прав
     #http_method_names = ['get'] # ограничение доступных методов
 
     #для переопределения сериалайзера для усечения отображения полей. Если не нужно переопредделять, то эта функция не нужна
     def list(self, request, *args, **kwargs):
-        notes = Note.objects.filter(author=request.user.id)# отображение для пользователя только его записей
+        notes = Note.objects.all()
+        #notes = Note.objects.filter(author=request.user.id)# отображение для пользователя только его записей
         context = {'request': request}
         serializer = ThinNoteSerializer(notes, many=True, context=context)
         return Response(serializer.data)
