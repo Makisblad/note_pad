@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from notes.models import *
+from django.contrib.auth import get_user_model
+
 
 # class NoteSerializer(serializers.Serializer): #способ 1
 #     id = serializers.IntegerField(read_only=True)
@@ -29,3 +31,22 @@ class ThinNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
         fields = ('id', 'title', 'url')
+
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = get_user_model()
+        queryset = model.objects.all()
+        fields = ('id', 'email', 'password', 'name', 'is_admin')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = self.Meta.model(**validated_data)
+        user.save()
+        return user
+
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data.pop('password', ''))
+        return super.update(instance, validated_data)

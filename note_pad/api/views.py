@@ -8,9 +8,17 @@ from rest_framework.generics import GenericAPIView, ListCreateAPIView, RetrieveU
 from .serializers import *
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-#from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser
 from .permisions import IsAuthorOrReadonly #импортируем кастомные права
+from django.contrib.auth import get_user_model
 
+
+
+class UserViewSet(ModelViewSet):
+    model = get_user_model()
+    queryset = model.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAdminUser,)
 
 #через вьюсеты
 class NotesView(ModelViewSet):
